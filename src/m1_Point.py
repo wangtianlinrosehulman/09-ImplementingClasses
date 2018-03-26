@@ -56,41 +56,64 @@ class Point(object):
         self.t = 0
         self.dis_x = self.x
         self.dis_y = self.y
-        self.move_x = 0
-        self.move_y = 0
+        self.start_x = x
+        self.start_y = y
+        self.travel_x = 0
+        self.travel_y = 0
+        self.dis_travel = 0
 
     def __repr__(self):
         return 'Point({},{})'.format(self.x, self.y)
 
     def clone(self):
-        return self
+        return Point(self.x, self.y)
 
     def move_to(self, x, y):
-        self.move_x += x - self.x
-        self.move_y += y - self.y
+        self.travel_x = abs(x - self.x)
+        self.travel_y = abs(y - self.y)
+        self.dis_travel += math.sqrt(self.travel_x ** 2 + self.travel_y ** 2)
         self.x = x
         self.y = y
         self.t += 1
 
     def move_by(self, dx, dy):
+        self.travel_x = abs(dx)
+        self.travel_y = abs(dy)
+        self.dis_travel += math.sqrt(self.travel_x ** 2 + self.travel_y ** 2)
+        self.x += dx
+        self.y += dy
         self.t += 1
         self.dis_x += dx
         self.dis_y += dy
-        self.move_x += dx
-        self.move_y += dy
 
     def get_number_of_moves_made(self):
         return self.t
 
     def get_distance_from(self, point):
-        a = self.move_x - point.x
-        b = self.move_y - point.y
+        a = self.dis_x - point.x
+        b = self.dis_y - point.y
         distance = math.sqrt(a ** 2 + b ** 2)
         return distance
 
     def get_distance_from_start(self):
-        distance = math.sqrt(self.move_x ** 2 + self.move_y ** 2)
+        distance = math.sqrt((self.x - self.start_x) ** 2 + (self.y - self.start_y) ** 2)
         return distance
+
+    def get_distance_traveled(self):
+        return self.dis_travel
+
+    def closer_to(self, point1, point2):
+        dis_1 = math.sqrt((point1.x - self.x) ** 2 + (point1.y - self.y) ** 2)
+        dis_2 = math.sqrt((point2.x - self.x) ** 2 + (point2.y - self.y) ** 2)
+        if dis_1 <= dis_2:
+            return point1
+        else:
+            return point2
+
+    def halfway_to(self, point):
+        x = self.x + (point.x - self.x) / 2
+        y = self.y + (point.y - self.y) / 2
+        return Point(x, y)
 
 
 def run_test_init():
@@ -814,7 +837,7 @@ def run_test_get_distance_from_start():
         print('Actually is:', p2.get_distance_from_start())
     """
     # ------------------------------------------------------------------
-    # TODO: 10.  Follow the same instructions as in TO-DO 3 above,
+    # Done: 10.  Follow the same instructions as in TO-DO 3 above,
     #    but for the  get_distance_from_START  method specified above.
     # ------------------------------------------------------------------
     print()
@@ -897,7 +920,7 @@ def run_test_get_distance_traveled():
         print('Actual:', p4.get_distance_traveled())
     """
     # ------------------------------------------------------------------
-    # TODO: 11.  Follow the same instructions as in TO-DO 3 above,
+    # Done: 11.  Follow the same instructions as in TO-DO 3 above,
     #    but for the  get_distance_traveled  method specified above.
     # ------------------------------------------------------------------
     print()
@@ -905,6 +928,34 @@ def run_test_get_distance_traveled():
     print('Testing the   get_distance_traveled   method')
     print('of the Point class.')
     print('-----------------------------------------------------------')
+
+    p1 = Point(20, 30)
+    p1.move_to(21, 30)
+    p1.move_to(21, 38)
+    print()
+    print('Expected p1 has traveled 9.0')
+    print('Actual:', p1.get_distance_traveled())
+
+    p1.move_by(1, 1)
+    print()
+    print('Expected p1 has now traveled about 10.414')
+    print('Actual:', p1.get_distance_traveled())
+
+    p2 = Point(0, 0)
+    p3 = Point(100, 22)
+    p4 = Point(0, 555)
+    for k in range(100):
+        p2.move_by(0, k + 1)
+        p3.move_by(k + 1, 0)
+        p4.move_to(k + 1, 555)
+
+    print()
+    print('Expected p2 has now traveled', 101 * 50.0)
+    print('Actual:', p2.get_distance_traveled())
+    print('Expected p3 has now traveled', 101 * 50.0)
+    print('Actual:', p3.get_distance_traveled())
+    print('Expected p4 has now traveled 100.0')
+    print('Actual:', p4.get_distance_traveled())
 
 
 def run_test_closer_to():
@@ -954,13 +1005,41 @@ def run_test_closer_to():
         print('Actual:  ', p1.closer_to(p4, p5) is p5)
     """
     # ------------------------------------------------------------------
-    # TODO: 12.  Follow the same instructions as in TO-DO 3 above,
+    # Done: 12.  Follow the same instructions as in TO-DO 3 above,
     #    but for the  closer_to  method specified above.
     # ------------------------------------------------------------------
     print()
     print('-----------------------------------------------------------')
     print('Testing the   closer_to   method of the Point class.')
     print('-----------------------------------------------------------')
+
+    p1 = Point(10, 20)
+    p2 = Point(15, 20)
+    p3 = Point(14, 24)
+
+    print()
+    print('Expected:', p2)
+    print('Actual:  ', p1.closer_to(p2, p3))
+    print('Expected:', p2)
+    print('Actual:  ', p1.closer_to(p3, p2))
+
+    print()
+    print('Expected:', p1)
+    print('Actual:  ', p1.closer_to(p1, p3))
+    print('Expected:', p2)
+    print('Actual:  ', p2.closer_to(p3, p2))
+    print('Expected:', p3)
+    print('Actual:  ', p3.closer_to(p3, p3))
+
+    print()
+    p4 = p1.clone()
+    p5 = p1.clone()
+    print('Expected:', p4)
+    print('Actual:  ', p1.closer_to(p4, p5))
+    print('Expected: True')
+    print('Actual:  ', p1.closer_to(p4, p5) is p4)
+    print('Expected: False')
+    print('Actual:  ', p1.closer_to(p4, p5) is p5)
 
 
 def run_test_halfway_to():
@@ -1002,7 +1081,7 @@ def run_test_halfway_to():
         print('Should be: Point(10.0, -40.0)')
         print('Actual is:', p3.halfway_to(p4))
         print('Should be: Point(10.0, -40.0)')
-        print('Actual is:', p3.halfway_to(p4))
+        print('Actual is:', p4.halfway_to(p3))
 
         print()
         print('Should be: Point(-10.0, 20.0)')
@@ -1010,7 +1089,7 @@ def run_test_halfway_to():
 
     """
     # ------------------------------------------------------------------
-    # TODO: 13.  Follow the same instructions as in TO-DO 3 above,
+    # Done: 13.  Follow the same instructions as in TO-DO 3 above,
     #    but for the  halfway_to  method specified above.
     # ------------------------------------------------------------------
     print()
@@ -1018,6 +1097,31 @@ def run_test_halfway_to():
     print('Testing the   halfway_to   method of the Point class.')
     print('-----------------------------------------------------------')
 
+    p1 = Point(10, 20)
+    p2 = Point(30, 100)
+
+    print()
+    print('Should be: Point(20.0, 60.0)')
+    print('Actual is:', p1.halfway_to(p2))
+    print('Should be: Point(20.0, 60.0)')
+    print('Actual is:', p2.halfway_to(p1))
+
+    print()
+    print('Should be: Point(10.0, 20.0)')
+    print('Actual is:', p1.halfway_to(p1))
+
+    p3 = Point(-10, 20)
+    p4 = Point(30, -100)
+
+    print()
+    print('Should be: Point(10.0, -40.0)')
+    print('Actual is:', p3.halfway_to(p4))
+    print('Should be: Point(10.0, -40.0)')
+    print('Actual is:', p4.halfway_to(p3))
+
+    print()
+    print('Should be: Point(-10.0, 20.0)')
+    print('Actual is:', p3.halfway_to(p3))
 
 # ----------------------------------------------------------------------
 # Calls  main  to start the ball rolling.
