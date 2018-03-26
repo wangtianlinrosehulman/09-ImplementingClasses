@@ -45,7 +45,6 @@ def main():
 # to have additional side effects as needed by it and/or other methods.
 ########################################################################
 
-
 import math
 
 
